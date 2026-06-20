@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hookah Mix PRO - Помощник кальянщика</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>💨 Hookah Mix PRO</h1>
+                    <p>База рецептов для твоей команды</p>
+                </div>
+                <div class="header-actions">
+                    <span id="totalRecipes">📊 0 рецептов</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Панель администратора -->
+        <section class="admin-panel">
+            <div class="admin-buttons">
+                <button onclick="toggleAddForm()" class="btn-primary">➕ Добавить рецепт</button>
+                <button onclick="randomRecipe()" class="btn-random">🎲 Случайный микс</button>
+                <button onclick="toggleInventory()" class="btn-inventory" id="inventoryBtn">📦 Наличие (0)</button>
+                <button onclick="exportRecipes()" class="btn-secondary">📥 Экспорт JSON</button>
+                <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📂 Импорт JSON</button>
+                <button onclick="showFavorites()" class="btn-fav-filter" id="favFilterBtn">⭐ Избранное</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFromFile(event)">
+            </div>
+            
+            <!-- Форма добавления -->
+            <div class="add-form" id="addForm" style="display:none;">
+                <h3>✏️ Новый рецепт</h3>
+                <input type="text" id="recipeName" placeholder="Название микса *">
+                <select id="recipeBrand">
+                    <option value="Darkside">Darkside</option>
+                    <option value="Хулиган">Хулиган</option>
+                    <option value="Black Burn">Black Burn</option>
+                    <option value="Musthave">Musthave</option>
+                    <option value="Палитра">Палитра</option>
+                    <option value="Себеро">Себеро</option>
+                    <option value="Северный">Северный</option>
+                    <option value="Сарма">Сарма</option>
+                    <option value="Другой">Другой</option>
+                </select>
+                <input type="text" id="recipeIngredients" placeholder="Ингредиенты (через запятую) *">
+                <input type="text" id="recipeRatio" placeholder="Пропорции (например: 50% + 50%) *">
+                <input type="text" id="recipeTags" placeholder="Теги (через запятую: хит, свежий, десерт)">
+                <textarea id="recipeDescription" placeholder="Описание"></textarea>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="saveRecipe()" class="btn-success">💾 Сохранить</button>
+                    <button onclick="toggleAddForm()" class="btn-danger">❌ Отмена</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== ПАНЕЛЬ НАЛИЧИЯ ===== -->
+        <section class="inventory-panel" id="inventoryPanel" style="display:none;">
+            <div class="inventory-header">
+                <h3>📦 Что есть в баре?</h3>
+                <div class="inventory-actions">
+                    <button onclick="selectAllFlavors()" class="btn-secondary" style="padding:6px 14px;font-size:0.8rem;">✅ Все</button>
+                    <button onclick="deselectAllFlavors()" class="btn-secondary" style="padding:6px 14px;font-size:0.8rem;">❌ Снять все</button>
+                    <button onclick="toggleInventory()" class="btn-danger" style="padding:6px 14px;font-size:0.8rem;">✖ Закрыть</button>
+                </div>
+            </div>
+            <div class="inventory-search">
+                <input type="text" id="inventorySearch" placeholder="🔍 Найти табак..." oninput="renderInventory()">
+            </div>
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- Список вкусов загрузится автоматически -->
+            </div>
+            <div class="inventory-stats">
+                <span id="inventoryCount">Выбрано: 0</span>
+                <span id="availableRecipes">Доступно рецептов: 0</span>
+            </div>
+        </section>
+<!-- В панели инвентаря, после инпутов -->
+<div class="inventory-actions">
+    <button onclick="addNewFlavor()" class="btn-secondary" style="padding:6px 14px;font-size:0.8rem;background:#6a3093;border-color:#6a3093;">
+        ➕ Добавить вкус
+    </button>
+    <button onclick="selectAllFlavors()" class="btn-secondary" style="padding:6px 14px;font-size:0.8rem;">✅ Все</button>
+    <button onclick="deselectAllFlavors()" class="btn-secondary" style="padding:6px 14px;font-size:0.8rem;">❌ Снять все</button>
+    <button onclick="toggleInventory()" class="btn-danger" style="padding:6px 14px;font-size:0.8rem;">✖ Закрыть</button>
+</div>
+        <!-- Топ популярных вкусов -->
+        <section class="top-flavors" id="topFlavors">
+            <h3>🏆 Популярные вкусы</h3>
+            <div class="flavors-list" id="flavorsList">
+                Загрузка...
+            </div>
+        </section>
+
+        <!-- Поиск -->
+        <section class="search-section">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск по названию, бренду или вкусам...">
+        </section>
+
+        <!-- Фильтры по брендам -->
+        <section class="filters-section">
+            <div class="brand-filters" id="brandFilters">
+                <!-- Бренды подгрузятся из БД -->
+            </div>
+        </section>
+
+        <!-- Список рецептов -->
+        <section class="recipes-section">
+            <div class="recipes-grid" id="recipesGrid">
+                <div class="loading"><span>⏳ Загрузка рецептов...</span></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 Hookah Mix PRO — Для своих</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>

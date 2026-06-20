@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Удаление всех рецептов</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        h1 { color: #ef4444; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+            margin: 10px;
+        }
+        .btn-danger { 
+            background: #dc2626; 
+            color: white; 
+        }
+        .btn-danger:hover { background: #ef4444; }
+        .btn-secondary { 
+            background: #2a2a4e; 
+            color: white; 
+        }
+        .btn-secondary:hover { background: #3a3a6e; }
+        #log { 
+            margin-top: 20px; 
+            background: #1a1a1a; 
+            padding: 20px; 
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 14px;
+            text-align: left;
+        }
+        .success { color: #34d399; }
+        .error { color: #f87171; }
+        .info { color: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <h1>⚠️ УДАЛЕНИЕ ВСЕХ РЕЦЕПТОВ</h1>
+    <p style="color: #f87171;">Это действие НЕЛЬЗЯ будет отменить!</p>
+    <p>Всего рецептов: <strong id="count">0</strong></p>
+    
+    <button onclick="deleteAll()" class="btn-danger">🗑️ УДАЛИТЬ ВСЕ</button>
+    <button onclick="window.location.reload()" class="btn-secondary">🔄 Обновить</button>
+    
+    <div id="log"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        // 🔥 ТВОЙ КОНФИГ FIREBASE 🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyARD2aXlnk35V0gCwa_-jFdF0DXPJwl16w",
+            authDomain: "zizuhookah.firebaseapp.com",
+            databaseURL: "https://zizuhookah-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "zizuhookah",
+            storageBucket: "zizuhookah.firebasestorage.app",
+            messagingSenderId: "457838423857",
+            appId: "1:457838423857:web:049554d2644ddd064a8a10",
+            measurementId: "G-RKHHYEX3EN"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = message;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Показываем количество рецептов
+        database.ref('recipes').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const count = data ? Object.keys(data).length : 0;
+            document.getElementById('count').textContent = count;
+        });
+
+        function deleteAll() {
+            const count = document.getElementById('count').textContent;
+            if (count === '0') {
+                alert('Нет рецептов для удаления');
+                return;
+            }
+
+            const confirmMsg = `⚠️ Ты точно хочешь удалить ВСЕ ${count} рецептов?\n\nЭто действие НЕЛЬЗЯ отменить!`;
+            if (!confirm(confirmMsg)) return;
+            
+            const finalConfirm = prompt(`Введи слово "УДАЛИТЬ ВСЕ" для подтверждения:`);
+            if (finalConfirm !== 'УДАЛИТЬ ВСЕ') {
+                alert('❌ Удаление отменено');
+                return;
+            }
+
+            log('🔄 Начинаем удаление всех рецептов...', 'info');
+            
+            database.ref('recipes').remove()
+                .then(() => {
+                    log('✅ ВСЕ РЕЦЕПТЫ УДАЛЕНЫ!', 'success');
+                    document.getElementById('count').textContent = '0';
+                })
+                .catch((error) => {
+                    log('❌ Ошибка: ' + error.message, 'error');
+                });
+        }
+    </script>
+</body>
+</html>
